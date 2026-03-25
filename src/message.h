@@ -1,8 +1,10 @@
 #pragma once
 
-#include <stdint.h>
 #ifndef _DNS_RESOLVER_MESSAGE_H_
 #define _DNS_RESOLVER_MESSAGE_H_
+
+#include <stddef.h>
+#include <stdint.h>
 
 typedef enum Opcode: uint8_t {
     OPCODE_QUERY = 0,
@@ -49,14 +51,17 @@ extern const char* rcode_names[16];
 
 typedef struct Header {
     uint16_t id; // Program assigned ID for query, returned for response
-    uint16_t qr: 1, // Query = 0, Response = 1
-             opcode: 4, // Message kind
-             aa: 1, // Authoritative Answer
-             tc: 1, // TrunCation
-             rd: 1, // Recursion Desired
-             ra: 1, // Recursion Available
-             z: 3,  // Reserved for future use
-             rcode: 4;
+    union {
+        uint16_t qr: 1, // Query = 0, Response = 1
+                 opcode: 4, // Message kind
+                 aa: 1, // Authoritative Answer
+                 tc: 1, // TrunCation
+                 rd: 1, // Recursion Desired
+                 ra: 1, // Recursion Available
+                 z: 3,  // Reserved for future use
+                 rcode: 4;
+        uint16_t flags;
+    };
     uint16_t qd_count; // Number of entires in question section
     uint16_t an_count; // Number of resource records in answer section
     uint16_t ns_count; // Number of name servers resource records in authority records section
@@ -64,10 +69,7 @@ typedef struct Header {
 } Header;
 
 typedef struct Question {
-    struct {
-        uint8_t length;
-        uint8_t* data; // [length]
-    } qname;
+    uint8_t qname[255];
     uint16_t qtype; // Query type
     uint16_t qclass; // Query class
 } Question;
@@ -80,16 +82,26 @@ typedef struct ResourceRecord {
     uint16_t clas; // Class of data in rdata
     uint32_t ttl; // Time interval in seconds that this RR can be cached for, 0 indicates no caching
     uint16_t rd_length; // Length of rdata
-    uint16_t rdata[];
+    uint8_t* rdata;
 } ResourceRecord;
 
 // TODO: Compression: https://datatracker.ietf.org/doc/html/rfc1035#autoid-44
 typedef struct Message {
     Header header;
-    Question question;
+    Question* question;
     ResourceRecord* answer;
     ResourceRecord* authority;
     ResourceRecord* additional;
 } Message;
+
+// Returns bytes parsed or error if negative
+int parseMessage(char* buf, size_t buf_len, Message* message);
+void messageFree(Message* message);
+// Returns bytes parsed or error if negative
+int parseQuestion(char* buf, size_t buf_len, char* base_addr, Question* question);
+void questionFree(Question* question);
+// Returns bytes parsed or error if negative
+int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceRecord* rr);
+void resourceRecordFree(ResourceRecord* rr);
 
 #endif // _DNS_RESOLVER_MESSAGE_H_
