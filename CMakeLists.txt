@@ -39,3 +39,5 @@ endforeach()
 # Mark executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)

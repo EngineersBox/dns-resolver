@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -168,13 +169,17 @@ static int parseDomainName(char* buf, size_t buf_len, char* base_addr, uint8_t* 
             buf_ref = bufPtr(base_addr, uint8_t) + (label_len & 0b111111);
             label_len = ntohs(bufValue(buf_len, uint8_t));
             memcpy(name + name_offset, buf_ref, label_len);
+            name_offset += label_len;
+            printf("Data: %s\n", name);
             continue;
         }
         memcpy(name + name_offset, buf_ref, label_len);
         buf += sizeof(uint8_t) * label_len;
         buf_len -= sizeof(uint8_t) * label_len;
+        name_offset += label_len;
         name[++name_offset] = (uint8_t) '.';
         name_offset++;
+        printf("Data 1: %s\n", name);
     }
     return buf - original_buf;
 }
@@ -240,4 +245,12 @@ void messageFree(Message* message) {
         resourceRecordFree(message->additional);
     }
     free(message);
+}
+
+void questionFree(Question* question) {
+    free(question);
+}
+
+void resourceRecordFree(ResourceRecord* rr) {
+    free(rr);
 }

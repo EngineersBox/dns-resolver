@@ -85,7 +85,6 @@ typedef struct ResourceRecord {
     uint8_t* rdata;
 } ResourceRecord;
 
-// TODO: Compression: https://datatracker.ietf.org/doc/html/rfc1035#autoid-44
 typedef struct Message {
     Header header;
     Question* question;
