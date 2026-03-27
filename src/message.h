@@ -68,16 +68,16 @@ typedef struct Header {
     uint16_t ar_count; // Number of resource records in additional records section
 } Header;
 
+#define MAX_DOMAIN_NAME_LENGTH 256
+
 typedef struct Question {
-    uint8_t qname[255];
+    uint8_t qname[MAX_DOMAIN_NAME_LENGTH];
     uint16_t qtype; // Query type
     uint16_t qclass; // Query class
 } Question;
 
-#define MAX_RR_NAME_LENGTH 255
-
 typedef struct ResourceRecord {
-    char name[MAX_RR_NAME_LENGTH];
+    char name[MAX_DOMAIN_NAME_LENGTH];
     uint16_t type; // RR type, specifying the meaning ofd data in rdata
     uint16_t clas; // Class of data in rdata
     uint32_t ttl; // Time interval in seconds that this RR can be cached for, 0 indicates no caching
