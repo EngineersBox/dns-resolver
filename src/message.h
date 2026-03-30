@@ -52,14 +52,29 @@ extern const char* rcode_names[16];
 typedef struct Header {
     uint16_t id; // Program assigned ID for query, returned for response
     union {
-        uint16_t qr: 1, // Query = 0, Response = 1
-                 opcode: 4, // Message kind
-                 aa: 1, // Authoritative Answer
-                 tc: 1, // TrunCation
-                 rd: 1, // Recursion Desired
-                 ra: 1, // Recursion Available
-                 z: 3,  // Reserved for future use
-                 rcode: 4;
+        // uint16_t rd: 1, // recursion desired
+        //          tc :1, // truncated message
+        //          aa :1, // authoritive answer
+        //          opcode :4, // purpose of message
+        //          qr :1, // query/response flag
+        //
+        //          rcode :4, // response code
+        //          cd :1, // checking disabled
+        //          ad :1, // authenticated data
+        //          z :1, // its z! reserved
+        //          ra :1; // recursion available
+        struct {
+            uint16_t qr: 1, // Query = 0, Response = 1
+                     opcode: 4, // Message kind
+                     aa: 1, // Authoritative Answer
+                     tc: 1, // TrunCation
+                     rd: 1, // Recursion Desired
+                     ra: 1, // Recursion Available
+                     z: 1,  // Reserved for future use
+                     ad: 1, // Authenticated Data
+                     cd: 1, // Checking disabled
+                     rcode: 4;
+        };
         uint16_t flags;
     };
     uint16_t qd_count; // Number of entires in question section

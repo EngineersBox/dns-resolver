@@ -199,7 +199,7 @@ int main(const int argc, const char** argv) {
         s,
         (char*) buf,
         65536,
-        0,
+        MSG_WAITALL,
         (struct sockaddr*) &dest,
         (socklen_t*) &i
     )) < 0) {

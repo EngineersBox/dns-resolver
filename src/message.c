@@ -54,7 +54,6 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
     if (buf_len < sizeof(Header)) {
         return -1;
     }
-    char* base_addr = buf;
     header.id = ntohs(bufValue(buf, uint16_t));
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
@@ -76,10 +75,33 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
     printf("[Message] Parsed header\n");
     printf("[Message] Id: %d\n", header.id);
     printf("[Message] Flags: 0x%x\n", header.flags);
+    printf(
+        " - QR: %d\n"
+        " - Opcode: %d\n"
+        " - AA: %d\n"
+        " - TC: %d\n"
+        " - RD: %d\n"
+        " - RA: %d\n"
+        " - Z: %d\n"
+        " - AD: %d\n"
+        " - CD: %d\n"
+        " - RCode: %d\n",
+        header.qr,
+        header.opcode,
+        header.aa,
+        header.tc,
+        header.rd,
+        header.ra,
+        header.z,
+        header.ad,
+        header.cd,
+        header.rcode
+    );
     printf("[Message] Question count: %d\n", header.qd_count);
     printf("[Message] Answer count: %d\n", header.an_count);
     printf("[Message] Authority count: %d\n", header.ns_count);
     printf("[Message] Additional count: %d\n", header.ar_count);
+    char* base_addr = buf;
     Question* question = NULL;
     if (header.qd_count > 0) {
         question = calloc(header.qd_count, sizeof(Question));
@@ -177,7 +199,7 @@ static int parseDomainName(char* buf, size_t buf_len, char* base_addr, uint8_t* 
             fprintf(stderr, "[Domain] Unexpected end of buffer\n");
             return -1;
         }
-        uint16_t ptr = ntohs(bufValue(buf, uint16_t));
+        uint16_t ptr = bufValue(buf, uint16_t);
         printf("Ptr: %d\n", ptr);
         if ((ptr >> 14) == 0b11) {
             // Pointer
