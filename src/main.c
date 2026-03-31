@@ -113,19 +113,31 @@ typedef struct
     struct QUESTION *ques;
 } QUERY;
 
-void changetoDnsNameFormat(unsigned char* dns, unsigned char* host) {
-    int lock = 0;
-    for(int i = 0 ; i < strlen((char*)host) ; i++) {
-        if(host[i] != '.') {
+void changetoDnsNameFormat(unsigned char* dns, char* host) {
+    size_t lock = strlen(host);
+    dns[lock] = '\0';
+    for (int i = lock - 1; i >= 0; i--) {
+        if (host[i] != '.') {
             continue;
         }
-        *dns++ = i-lock;
-        for(;lock<i;lock++) {
-            *dns++ = host[lock];
-        }
-        lock++; //or lock=i+1;
+        memcpy(&(dns[i + 1]), &(host[i + 1]), lock - 1 - i);
+        dns[i] = lock - 1 - i;
+        lock = i;
     }
-    *dns++='\0';
+
+
+    // size_t lock = 0;
+    // for (size_t i = 1; i < strlen((char*) host); i++) {
+    //     if (host[i] != '.') {
+    //         continue;
+    //     }
+    //     *(dns++) = i - lock;
+    //     for (; lock < i; lock++) {
+    //         *(dns++) = host[lock];
+    //     }
+    //     lock++; //or lock=i+1;
+    // }
+    // *(dns++)='\0';
 }
 
 int main(const int argc, const char** argv) {
@@ -145,7 +157,7 @@ int main(const int argc, const char** argv) {
  
     dest.sin_family = AF_INET;
     dest.sin_port = htons(53);
-    dest.sin_addr.s_addr = inet_addr("8.8.8.8");
+    dest.sin_addr.s_addr = inet_addr("1.1.1.1");
  
     //Set the DNS structure to standard queries
     dns = (struct DNS_HEADER *)&buf;
@@ -169,7 +181,8 @@ int main(const int argc, const char** argv) {
     //point to the query portion
     qname = (unsigned char*) &buf[sizeof(struct DNS_HEADER)];
  
-    changetoDnsNameFormat(qname , (unsigned char*) ".www.google.com");
+    changetoDnsNameFormat(qname , ".www.google.com");
+    printf("Name: %s\n", qname);
     qinfo = (struct QUESTION*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
  
     qinfo->qtype = htons(T_A);
@@ -207,6 +220,9 @@ int main(const int argc, const char** argv) {
         return 1;
     }
     printf("Done\n");
+    FILE* fp = fopen("dns.raw", "w");
+    fwrite(buf, sizeof(unsigned char), buf_len, fp);
+    fclose(fp);
 
     Message* message = malloc(sizeof(Message));
     *message = (Message) {0};

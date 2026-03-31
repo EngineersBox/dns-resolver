@@ -54,6 +54,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
     if (buf_len < sizeof(Header)) {
         return -1;
     }
+    char* msg_base = buf;
     header.id = ntohs(bufValue(buf, uint16_t));
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
@@ -101,7 +102,6 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
     printf("[Message] Answer count: %d\n", header.an_count);
     printf("[Message] Authority count: %d\n", header.ns_count);
     printf("[Message] Additional count: %d\n", header.ar_count);
-    char* base_addr = buf;
     Question* question = NULL;
     if (header.qd_count > 0) {
         question = calloc(header.qd_count, sizeof(Question));
@@ -109,7 +109,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
             return -1;
         }
         for (int i = 0; i < header.qd_count; i++) {
-            int bytes = parseQuestion(buf, buf_len, base_addr, &question[i]);
+            int bytes = parseQuestion(buf, buf_len, msg_base, &question[i]);
             if (bytes < 0) {
                 fprintf(stderr, "[Message] Failed to parse question\n");
                 free(question);
@@ -128,7 +128,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
             return -1;
         }
         for (int i = 0; i < header.an_count; i++) {
-            int bytes = parseResourceRecord(buf, buf_len, base_addr, &answer[i]);
+            int bytes = parseResourceRecord(buf, buf_len, msg_base, &answer[i]);
             if (bytes < 0) {
                 fprintf(stderr, "[Message] Failed to parse answer\n");
                 free(answer);
@@ -147,7 +147,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
             return -1;
         }
         for (int i = 0; i < header.ns_count; i++) {
-            int bytes = parseResourceRecord(buf, buf_len, base_addr, &authority[i]);
+            int bytes = parseResourceRecord(buf, buf_len, msg_base, &authority[i]);
             if (bytes < 0) {
                 fprintf(stderr, "[Message] Failed to parse authority\n");
                 free(authority);
@@ -167,7 +167,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
             return -1;
         }
         for (int i = 0; i < header.ar_count; i++) {
-            int bytes = parseResourceRecord(buf, buf_len, base_addr, &additional[i]);
+            int bytes = parseResourceRecord(buf, buf_len, msg_base, &additional[i]);
             if (bytes < 0) {
                 fprintf(stderr, "[Message] Failed to parse additional\n");
                 free(additional);
@@ -194,14 +194,16 @@ static int parseDomainName(char* buf, size_t buf_len, char* base_addr, uint8_t* 
     uint8_t name_offset = 0;
     uint8_t parsed_bytes = 0;
     bool encountered_ptr = true;
-    while (*buf != 0 && name_offset < MAX_DOMAIN_NAME_LENGTH - 1) {
+    while (name_offset < MAX_DOMAIN_NAME_LENGTH - 1) {
         if (buf_len < sizeof(uint8_t)) {
             fprintf(stderr, "[Domain] Unexpected end of buffer\n");
             return -1;
         }
         uint16_t ptr = bufValue(buf, uint16_t);
         printf("Ptr: %d\n", ptr);
-        if ((ptr >> 14) == 0b11) {
+        if (ptr == 0) {
+            break;
+        } else if ((ptr >> 14) == 0b11) {
             // Pointer
             ptr &= ~(0b11 << 14);
             char* new_buf_ptr = (char*) (bufPtr(base_addr, uint8_t) + ptr);
@@ -253,15 +255,20 @@ int parseQuestion(char* buf, size_t buf_len, char* base_addr, Question* question
     }
     char* original_buf = buf;
     int result = parseDomainName(buf, buf_len, base_addr, question->qname);
-    if (result < 0) {
+    if (result <= 0) {
         fprintf(stderr, "[Question] Failed to parse domain name\n");
         return -1;
     }
     buf += result;
+    buf_len -= result;
     question->qtype = ntohs(bufValue(buf, uint16_t));
+    printf("QType: %d\n", question->qtype);
     buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
     question->qclass = ntohs(bufValue(buf, uint16_t));
+    printf("QClass: %d\n", question->qclass);
     buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
     return buf - original_buf;
 }
 
@@ -272,7 +279,7 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
     }
     char* original_buf = buf;
     int result = parseDomainName(buf, buf_len, base_addr, (uint8_t*) rr->name);
-    if (result < 0) {
+    if (result <= 0) {
         fprintf(stderr, "[RR] Failed to parse domain name\n");
         return -1;
     }

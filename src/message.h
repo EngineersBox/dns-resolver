@@ -52,6 +52,7 @@ extern const char* rcode_names[16];
 typedef struct Header {
     uint16_t id; // Program assigned ID for query, returned for response
     union {
+        struct {
         // uint16_t rd: 1, // recursion desired
         //          tc :1, // truncated message
         //          aa :1, // authoritive answer
@@ -63,7 +64,6 @@ typedef struct Header {
         //          ad :1, // authenticated data
         //          z :1, // its z! reserved
         //          ra :1; // recursion available
-        struct {
             uint16_t qr: 1, // Query = 0, Response = 1
                      opcode: 4, // Message kind
                      aa: 1, // Authoritative Answer
