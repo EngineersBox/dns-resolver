@@ -49,13 +49,6 @@ int readFile(const char* file_path, char** out) {
     *out = source;
     return new_len;
 }
-
-#define T_A 1 //Ipv4 address
-#define T_NS 2 //Nameserver
-#define T_CNAME 5 // canonical name
-#define T_SOA 6 /* start of authority zone */
-#define T_PTR 12 /* domain name pointer */
-#define T_MX 15 //Mail server
  
 //DNS header structure
 struct DNS_HEADER
@@ -140,6 +133,36 @@ void changetoDnsNameFormat(unsigned char* dns, char* host) {
     // *(dns++)='\0';
 }
 
+int print_rr(const ResourceRecord* rr) {
+    printf("Name: %s ", rr->name);
+    printf("Type: %s ", type_names[rr->type]);
+    printf("Class: %s ", class_names[rr->clas]);
+    printf("TTL: %d ", rr->ttl);
+    printf("RD Len: %d ", rr->rd_length);
+    switch (rr->type) {
+        case TYPE_A:
+            char ipv4_addr[INET_ADDRSTRLEN] = {0};
+             if (inet_ntop(AF_INET, rr->rdata, ipv4_addr, INET_ADDRSTRLEN) == NULL) {
+                perror("Failed to convert IPv4 address");
+                return 1;
+             }
+            printf("Address: %s", ipv4_addr); 
+            break;
+        case TYPE_AAAA:
+            char ipv6_addr[INET6_ADDRSTRLEN] = {0};
+             if (inet_ntop(AF_INET6, rr->rdata, ipv6_addr, INET6_ADDRSTRLEN) == NULL) {
+                perror("Failed to convert IPv6 address");
+                return 1;
+             }
+            printf("Address: %s", ipv6_addr); 
+            break;
+        default:
+            break;
+    }
+    printf("\n");
+    return 0;
+}
+
 int main(const int argc, const char** argv) {
     // char* data = NULL;
     // const int len = readFile("dig.raw", &data);
@@ -182,11 +205,10 @@ int main(const int argc, const char** argv) {
     qname = (unsigned char*) &buf[sizeof(struct DNS_HEADER)];
  
     changetoDnsNameFormat(qname , ".www.instaclustr.com");
-    printf("Name: %s\n", qname);
     qinfo = (struct QUESTION*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
  
-    qinfo->qtype = htons(T_A);
-    qinfo->qclass = htons(1);
+    qinfo->qtype = htons(TYPE_AAAA);
+    qinfo->qclass = htons(CLASS_IN);
  
     printf("Sending Packet...\n");
     if (sendto(
@@ -220,9 +242,6 @@ int main(const int argc, const char** argv) {
         return 1;
     }
     printf("Done\n");
-    FILE* fp = fopen("dns.raw", "w");
-    fwrite(buf, sizeof(unsigned char), buf_len, fp);
-    fclose(fp);
 
     Message* message = malloc(sizeof(Message));
     *message = (Message) {0};
@@ -233,29 +252,25 @@ int main(const int argc, const char** argv) {
         return 1;
     }
     for (int i = 0; i < message->header.an_count; i++) {
-        const ResourceRecord* rr = &message->answer[0];
+        const ResourceRecord* rr = &message->answer[i];
         printf("[Answer %d] ", i);
-        printf("Name: %s ", rr->name);
-        printf("Type: %s ", type_names[rr->type]);
-        printf("Class: %s ", class_names[rr->clas]);
-        printf("TTL: %d ", rr->ttl);
-        printf("RD Len: %d ", rr->rd_length);
-        if (rr->type == TYPE_A) {
-            char ipv4_addr[INET_ADDRSTRLEN] = {0};
-             if (inet_ntop(AF_INET, rr->rdata, ipv4_addr, INET_ADDRSTRLEN) == NULL) {
-                perror("Failed to convert IPv4 address");
-                return 1;
-             }
-            printf("Address: %s", ipv4_addr); 
-        } else if (rr->type == TYPE_AAAA) {
-            char ipv6_addr[INET6_ADDRSTRLEN] = {0};
-             if (inet_ntop(AF_INET6, rr->rdata, ipv6_addr, INET6_ADDRSTRLEN) == NULL) {
-                perror("Failed to convert IPv6 address");
-                return 1;
-             }
-            printf("Address: %s", ipv6_addr); 
+        if (print_rr(rr)) {
+            return 1;
         }
-        printf("\n");
+    }
+    for (int i = 0; i < message->header.ns_count; i++) {
+        const ResourceRecord* rr = &message->authority[i];
+        printf("[Authority %d] ", i);
+        if (print_rr(rr)) {
+            return 1;
+        }
+    }
+    for (int i = 0; i < message->header.ar_count; i++) {
+        const ResourceRecord* rr = &message->additional[i];
+        printf("[Additional %d] ", i);
+        if (print_rr(rr)) {
+            return 1;
+        }
     }
     messageFree(message);
     return 0;
