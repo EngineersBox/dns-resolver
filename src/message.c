@@ -262,11 +262,9 @@ int parseQuestion(char* buf, size_t buf_len, char* base_addr, Question* question
     buf += result;
     buf_len -= result;
     question->qtype = ntohs(bufValue(buf, uint16_t));
-    printf("QType: %d\n", question->qtype);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
     question->qclass = ntohs(bufValue(buf, uint16_t));
-    printf("QClass: %d\n", question->qclass);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
     return buf - original_buf;
