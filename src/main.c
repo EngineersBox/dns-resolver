@@ -169,6 +169,7 @@ int main(const int argc, const char** argv) {
     // if (data == NULL) {
     //     return 1;
     // }
+    // TODO: Format query ourselves
     unsigned char buf[65536],*qname;
  
     struct sockaddr_in dest;
