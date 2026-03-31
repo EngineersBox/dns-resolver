@@ -181,7 +181,7 @@ int main(const int argc, const char** argv) {
     //point to the query portion
     qname = (unsigned char*) &buf[sizeof(struct DNS_HEADER)];
  
-    changetoDnsNameFormat(qname , ".www.google.com");
+    changetoDnsNameFormat(qname , ".www.instaclustr.com");
     printf("Name: %s\n", qname);
     qinfo = (struct QUESTION*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
  
@@ -234,11 +234,28 @@ int main(const int argc, const char** argv) {
     }
     for (int i = 0; i < message->header.an_count; i++) {
         const ResourceRecord* rr = &message->answer[0];
-        printf("Name: %s\n", rr->name);
-        printf("Type: %s\n", type_names[rr->type]);
-        printf("Class: %s\n", class_names[rr->clas]);
-        printf("TTL: %d\n", rr->ttl);
-        printf("RD Len: %d\n", rr->rd_length);
+        printf("[Answer %d] ", i);
+        printf("Name: %s ", rr->name);
+        printf("Type: %s ", type_names[rr->type]);
+        printf("Class: %s ", class_names[rr->clas]);
+        printf("TTL: %d ", rr->ttl);
+        printf("RD Len: %d ", rr->rd_length);
+        if (rr->type == TYPE_A) {
+            char ipv4_addr[INET_ADDRSTRLEN] = {0};
+             if (inet_ntop(AF_INET, rr->rdata, ipv4_addr, INET_ADDRSTRLEN) == NULL) {
+                perror("Failed to convert IPv4 address");
+                return 1;
+             }
+            printf("Address: %s", ipv4_addr); 
+        } else if (rr->type == TYPE_AAAA) {
+            char ipv6_addr[INET6_ADDRSTRLEN] = {0};
+             if (inet_ntop(AF_INET6, rr->rdata, ipv6_addr, INET6_ADDRSTRLEN) == NULL) {
+                perror("Failed to convert IPv6 address");
+                return 1;
+             }
+            printf("Address: %s", ipv6_addr); 
+        }
+        printf("\n");
     }
     messageFree(message);
     return 0;

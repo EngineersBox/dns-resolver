@@ -92,7 +92,7 @@ typedef struct Question {
 } Question;
 
 typedef enum Type: uint16_t {
-    TYPE_A = 1, // Host address
+    TYPE_A = 1, // Host address IPv4
     TYPE_NS = 2, // Authoritative name server
     TYPE_MD = 3, // Mail destination (obselete - use MX)
     TYPE_MF = 4, // Mail forwarder (obselete - use MX)
@@ -107,13 +107,14 @@ typedef enum Type: uint16_t {
     TYPE_HINFO = 13, // Host information
     TYPE_MINFO = 14, // Mailbox or mail list information
     TYPE_MX = 15, // Mail exchange
-    TYPE_TXT = 16 // Text strings
+    TYPE_TXT = 16, // Text strings
+    TYPE_AAAA = 28 // Host address IPv6
 } Type;
 
-extern const char* type_names[17];
+extern const char* type_names[29];
 
 typedef enum QType: uint16_t {
-    QTYPE_A = 1, // Host address
+    QTYPE_A = 1, // Host address IPv4
     QTYPE_NS = 2, // Authoritative name server
     QTYPE_MD = 3, // Mail destination (obselete - use MX)
     QTYPE_MF = 4, // Mail forwarder (obselete - use MX)
@@ -129,6 +130,7 @@ typedef enum QType: uint16_t {
     QTYPE_MINFO = 14, // Mailbox or mail list information
     QTYPE_MX = 15, // Mail exchange
     QTYPE_TXT = 16, // Text strings
+    QTYPE_AAAA = 28, // Host address IPv6
     QTYPE_AXFR = 252, // Request for transfer of an entire zone
     QTYPE_MAILB = 253, // Request for mailbox-related records (MB, MG or MR)
     QTYPE_MAILA = 254, // Request for mail agent PRs (Obselete - see MX)

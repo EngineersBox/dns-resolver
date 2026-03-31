@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char* opcode_names[16] = {
+const char* opcode_names[] = {
     [OPCODE_QUERY] = "OPCODE_QUERY",
     [OPCODE_IQUERY] = "OPCODE_IQUERY",
     [OPCODE_STATUS] = "OPCODE_STATUS",
@@ -26,7 +26,7 @@ const char* opcode_names[16] = {
     [OPCODE_RESERVED12] = "OPCODE_RESERVED12",
 };
 
-const char* rcode_names[16] = {
+const char* rcode_names[] = {
     [RCODE_NO_ERROR] = "RCODE_NO_ERROR",
     [RCODE_FORMAT_ERROR] = "RCODE_FORMAT_ERROR",
     [RCODE_SERVER_FAILURE] = "RCODE_SERVER_FAILURE",
@@ -45,7 +45,7 @@ const char* rcode_names[16] = {
     [RCODE_RESERVED9] = "RCODE_RESERVED9",
 };
 
-const char* type_names[17] = {
+const char* type_names[] = {
     [TYPE_A] = "A",
     [TYPE_NS] = "NS",
     [TYPE_MD] = "MD",
@@ -61,10 +61,11 @@ const char* type_names[17] = {
     [TYPE_HINFO] = "HINFO",
     [TYPE_MINFO] = "MINFO",
     [TYPE_MX] = "MX",
-    [TYPE_TXT] = "TXT"
+    [TYPE_TXT] = "TXT",
+    [TYPE_AAAA] = "AAAA"
 };
 
-const char* qtype_names[256] = {
+const char* qtype_names[] = {
     [QTYPE_A] = "A",
     [QTYPE_NS] = "NS",
     [QTYPE_MD] = "MD",
@@ -81,6 +82,7 @@ const char* qtype_names[256] = {
     [QTYPE_MINFO] = "MINFO",
     [QTYPE_MX] = "MX",
     [QTYPE_TXT] = "TXT",
+    [QTYPE_AAAA] = "AAAA",
     [QTYPE_AXFR] = "AXFR",
     [QTYPE_MAILB] = "MAILB",
     [QTYPE_MAILA] = "MAILA",
