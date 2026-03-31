@@ -232,9 +232,14 @@ int main(const int argc, const char** argv) {
         messageFree(message);
         return 1;
     }
-    const ResourceRecord* rr = &message->authority[0];
-    printf("Name: %s\n", rr->name);
-    printf("Len: %d\n", rr->rd_length);
+    for (int i = 0; i < message->header.an_count; i++) {
+        const ResourceRecord* rr = &message->answer[0];
+        printf("Name: %s\n", rr->name);
+        printf("Type: %d\n", rr->type);
+        printf("Class: %d\n", rr->clas);
+        printf("TTL: %d\n", rr->ttl);
+        printf("RD Len: %d\n", rr->rd_length);
+    }
     messageFree(message);
     return 0;
 }
