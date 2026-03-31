@@ -46,6 +46,7 @@ const char* rcode_names[] = {
 };
 
 const char* type_names[] = {
+    [0] = "INVALID",
     [TYPE_A] = "A",
     [TYPE_NS] = "NS",
     [TYPE_MD] = "MD",
@@ -66,6 +67,7 @@ const char* type_names[] = {
 };
 
 const char* qtype_names[] = {
+    [0] = "INVALID",
     [QTYPE_A] = "A",
     [QTYPE_NS] = "NS",
     [QTYPE_MD] = "MD",
@@ -89,7 +91,8 @@ const char* qtype_names[] = {
     [QTYPE_STAR] = "*"
 };
 
-const char* class_names[5] = {
+const char* class_names[] = {
+    [0] = "INVALID",
     [CLASS_IN] = "IN",
     [CLASS_CS] = "CS",
     [CLASS_CH] = "CH",
@@ -124,35 +127,35 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
     header.ar_count = ntohs(bufValue(buf, uint16_t));
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    printf("[Message] Parsed header\n");
-    printf("[Message] Id: %d\n", header.id);
-    printf("[Message] Flags: 0x%x\n", header.flags);
-    printf(
-        " - QR: %d\n"
-        " - Opcode: %d\n"
-        " - AA: %d\n"
-        " - TC: %d\n"
-        " - RD: %d\n"
-        " - RA: %d\n"
-        " - Z: %d\n"
-        " - AD: %d\n"
-        " - CD: %d\n"
-        " - RCode: %d\n",
-        header.qr,
-        header.opcode,
-        header.aa,
-        header.tc,
-        header.rd,
-        header.ra,
-        header.z,
-        header.ad,
-        header.cd,
-        header.rcode
-    );
-    printf("[Message] Question count: %d\n", header.qd_count);
-    printf("[Message] Answer count: %d\n", header.an_count);
-    printf("[Message] Authority count: %d\n", header.ns_count);
-    printf("[Message] Additional count: %d\n", header.ar_count);
+    // printf("[Message] Parsed header\n");
+    // printf("[Message] Id: %d\n", header.id);
+    // printf("[Message] Flags: 0x%x\n", header.flags);
+    // printf(
+    //     " - QR: %d\n"
+    //     " - Opcode: %d\n"
+    //     " - AA: %d\n"
+    //     " - TC: %d\n"
+    //     " - RD: %d\n"
+    //     " - RA: %d\n"
+    //     " - Z: %d\n"
+    //     " - AD: %d\n"
+    //     " - CD: %d\n"
+    //     " - RCode: %d\n",
+    //     header.qr,
+    //     header.opcode,
+    //     header.aa,
+    //     header.tc,
+    //     header.rd,
+    //     header.ra,
+    //     header.z,
+    //     header.ad,
+    //     header.cd,
+    //     header.rcode
+    // );
+    // printf("[Message] Question count: %d\n", header.qd_count);
+    // printf("[Message] Answer count: %d\n", header.an_count);
+    // printf("[Message] Authority count: %d\n", header.ns_count);
+    // printf("[Message] Additional count: %d\n", header.ar_count);
     Question* question = NULL;
     if (header.qd_count > 0) {
         question = calloc(header.qd_count, sizeof(Question));
@@ -166,12 +169,11 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
                 free(question);
                 return bytes;
             }
-            printf("[Message] Parsed question %d\n", i);
+            // printf("[Message] Parsed question %d\n", i);
             buf += bytes;
             buf_len -= bytes;
         }
     }
-    printf("[Message] Parsed questions\n");
     ResourceRecord* answer = NULL;
     if (header.an_count > 0) {
         answer = calloc(header.an_count, sizeof(ResourceRecord));
@@ -186,7 +188,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
                 if (question) free(question);
                 return bytes;
             }
-            printf("[Message] Parsed answer %d\n", i);
+            // printf("[Message] Parsed answer %d\n", i);
             buf += bytes;
             buf_len -= bytes;
         }
@@ -206,7 +208,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
                 if (question) free(question);
                 return bytes;
             }
-            printf("[Message] Parsed authority %d\n", i);
+            // printf("[Message] Parsed authority %d\n", i);
             buf += bytes;
             buf_len -= bytes;
         }
@@ -227,7 +229,7 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
                 if (question) free(question);
                 return bytes;
             }
-            printf("[Message] Parsed additional %d\n", i);
+            // printf("[Message] Parsed additional %d\n", i);
             buf += bytes;
             buf_len -= bytes;
         }
