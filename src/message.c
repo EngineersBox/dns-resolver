@@ -350,10 +350,12 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
     size_t bytes = rr->rd_length * sizeof(uint8_t);
-    rr->rdata = malloc(bytes);
-    memcpy(rr->rdata, buf, bytes);
-    buf += bytes;
-    buf_len -= bytes;
+    if (bytes > 0) {
+        rr->rdata = malloc(bytes);
+        memcpy(rr->rdata, buf, bytes);
+        buf += bytes;
+        buf_len -= bytes;
+    }
     return buf - original_buf;
 }
 
@@ -378,5 +380,8 @@ void questionFree(Question* question) {
 }
 
 void resourceRecordFree(ResourceRecord* rr) {
+    if (rr->rd_length > 0 && rr->rdata != NULL) {
+        free(rr->rdata);
+    }
     free(rr);
 }
