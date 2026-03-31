@@ -1,56 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include<string.h>    //strlen
-#include<sys/socket.h>    //you know what this is for
-#include<arpa/inet.h> //inet_addr , inet_ntoa , ntohs etc
+#include<string.h>
+#include<sys/socket.h>
+#include<arpa/inet.h>
 #include<netinet/in.h>
-#include<unistd.h>    //getpid
+#include<unistd.h>
 
 #include "message.h"
 
-int readFile(const char* file_path, char** out) {
-    FILE *fp = fopen(file_path, "r");
-    if (fp == NULL) {
-        fprintf(stderr, "Cannot open file\n");
-        return -1;
-    }
-    /* Go to the end of the file. */
-    if (fseek(fp, 0L, SEEK_END) != 0) {
-        fprintf(stderr, "Failed to seek\n");
-        return -1;
-    }
-    /* Get the size of the file. */
-    const long bufsize = ftell(fp);
-    if (bufsize == -1) {
-        fprintf(stderr, "Cannot get file size\n");
-        return -1;
-    }
-    /* Allocate our buffer to that size. */
-    char* source = malloc(sizeof(char) * (bufsize + 1));
-    /* Go back to the start of the file. */
-    if (fseek(fp, 0L, SEEK_SET) != 0) {
-        free(source);
-        fprintf(stderr, "Failed to seek\n");
-        return -1;
-    }
-    /* Read the entire file into memory. */
-    size_t new_len = fread(
-        source,
-        sizeof(char),
-        bufsize,
-        fp
-    );
-    if (ferror( fp ) != 0) {
-        fprintf(stderr, "Error reading file\n", stderr);
-    } else {
-        source[new_len++] = '\0'; /* Just to be safe. */
-    }
-    fclose(fp);
-    *out = source;
-    return new_len;
-}
- 
-//DNS header structure
 struct DNS_HEADER
 {
     unsigned short id; // identification number
@@ -117,20 +74,6 @@ void changetoDnsNameFormat(unsigned char* dns, char* host) {
         dns[i] = lock - 1 - i;
         lock = i;
     }
-
-
-    // size_t lock = 0;
-    // for (size_t i = 1; i < strlen((char*) host); i++) {
-    //     if (host[i] != '.') {
-    //         continue;
-    //     }
-    //     *(dns++) = i - lock;
-    //     for (; lock < i; lock++) {
-    //         *(dns++) = host[lock];
-    //     }
-    //     lock++; //or lock=i+1;
-    // }
-    // *(dns++)='\0';
 }
 
 int print_rr(const ResourceRecord* rr) {
@@ -164,11 +107,6 @@ int print_rr(const ResourceRecord* rr) {
 }
 
 int main(const int argc, const char** argv) {
-    // char* data = NULL;
-    // const int len = readFile("dig.raw", &data);
-    // if (data == NULL) {
-    //     return 1;
-    // }
     // TODO: Format query ourselves
     unsigned char buf[65536],*qname;
  
