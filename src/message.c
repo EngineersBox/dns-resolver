@@ -45,6 +45,55 @@ const char* rcode_names[16] = {
     [RCODE_RESERVED9] = "RCODE_RESERVED9",
 };
 
+const char* type_names[17] = {
+    [TYPE_A] = "A",
+    [TYPE_NS] = "NS",
+    [TYPE_MD] = "MD",
+    [TYPE_MF] = "MF",
+    [TYPE_CNAME] = "CNAME",
+    [TYPE_SOA] = "SOA",
+    [TYPE_MB] = "MB",
+    [TYPE_MG] = "MG",
+    [TYPE_MR] = "MR",
+    [TYPE_NULL] = "NULL",
+    [TYPE_WKS] = "WKS",
+    [TYPE_PTR] = "PTR",
+    [TYPE_HINFO] = "HINFO",
+    [TYPE_MINFO] = "MINFO",
+    [TYPE_MX] = "MX",
+    [TYPE_TXT] = "TXT"
+};
+
+const char* qtype_names[256] = {
+    [QTYPE_A] = "A",
+    [QTYPE_NS] = "NS",
+    [QTYPE_MD] = "MD",
+    [QTYPE_MF] = "MF",
+    [QTYPE_CNAME] = "CNAME",
+    [QTYPE_SOA] = "SOA",
+    [QTYPE_MB] = "MB",
+    [QTYPE_MG] = "MG",
+    [QTYPE_MR] = "MR",
+    [QTYPE_NULL] = "NULL",
+    [QTYPE_WKS] = "WKS",
+    [QTYPE_PTR] = "PTR",
+    [QTYPE_HINFO] = "HINFO",
+    [QTYPE_MINFO] = "MINFO",
+    [QTYPE_MX] = "MX",
+    [QTYPE_TXT] = "TXT",
+    [QTYPE_AXFR] = "AXFR",
+    [QTYPE_MAILB] = "MAILB",
+    [QTYPE_MAILA] = "MAILA",
+    [QTYPE_STAR] = "*"
+};
+
+const char* class_names[5] = {
+    [CLASS_IN] = "IN",
+    [CLASS_CS] = "CS",
+    [CLASS_CH] = "CH",
+    [CLASS_HS] = "HS"
+};
+
 #define bufPtr(buf, type) ((type*)(buf))
 #define bufValue(buf, type) (bufPtr(buf, type)[0])
 

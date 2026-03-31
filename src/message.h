@@ -91,6 +91,61 @@ typedef struct Question {
     uint16_t qclass; // Query class
 } Question;
 
+typedef enum Type: uint16_t {
+    TYPE_A = 1, // Host address
+    TYPE_NS = 2, // Authoritative name server
+    TYPE_MD = 3, // Mail destination (obselete - use MX)
+    TYPE_MF = 4, // Mail forwarder (obselete - use MX)
+    TYPE_CNAME = 5, // Canonical name for an alias
+    TYPE_SOA = 6, // Marks the start of a zone of authority
+    TYPE_MB = 7, // Mailbox domain name
+    TYPE_MG = 8, // Mail group member
+    TYPE_MR = 9, // Mail rename domain name
+    TYPE_NULL = 10, // Null RR
+    TYPE_WKS = 11, // Well known service description
+    TYPE_PTR = 12, // Domain name pointer
+    TYPE_HINFO = 13, // Host information
+    TYPE_MINFO = 14, // Mailbox or mail list information
+    TYPE_MX = 15, // Mail exchange
+    TYPE_TXT = 16 // Text strings
+} Type;
+
+extern const char* type_names[17];
+
+typedef enum QType: uint16_t {
+    QTYPE_A = 1, // Host address
+    QTYPE_NS = 2, // Authoritative name server
+    QTYPE_MD = 3, // Mail destination (obselete - use MX)
+    QTYPE_MF = 4, // Mail forwarder (obselete - use MX)
+    QTYPE_CNAME = 5, // Canonical name for an alias
+    QTYPE_SOA = 6, // Marks the start of a zone of authority
+    QTYPE_MB = 7, // Mailbox domain name
+    QTYPE_MG = 8, // Mail group member
+    QTYPE_MR = 9, // Mail rename domain name
+    QTYPE_NULL = 10, // Null RR
+    QTYPE_WKS = 11, // Well known service description
+    QTYPE_PTR = 12, // Domain name pointer
+    QTYPE_HINFO = 13, // Host information
+    QTYPE_MINFO = 14, // Mailbox or mail list information
+    QTYPE_MX = 15, // Mail exchange
+    QTYPE_TXT = 16, // Text strings
+    QTYPE_AXFR = 252, // Request for transfer of an entire zone
+    QTYPE_MAILB = 253, // Request for mailbox-related records (MB, MG or MR)
+    QTYPE_MAILA = 254, // Request for mail agent PRs (Obselete - see MX)
+    QTYPE_STAR = 255 // Request for all records
+} QType;
+
+extern const char* qtype_names[256];
+
+typedef enum Class: uint16_t {
+    CLASS_IN = 1, // Internet
+    CLASS_CS = 2, // CSNET
+    CLASS_CH = 3, // CHAOS
+    CLASS_HS = 4  // Hesoid
+} Class;
+
+extern const char* class_names[5];
+
 typedef struct ResourceRecord {
     char name[MAX_DOMAIN_NAME_LENGTH];
     uint16_t type; // RR type, specifying the meaning ofd data in rdata

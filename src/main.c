@@ -235,8 +235,8 @@ int main(const int argc, const char** argv) {
     for (int i = 0; i < message->header.an_count; i++) {
         const ResourceRecord* rr = &message->answer[0];
         printf("Name: %s\n", rr->name);
-        printf("Type: %d\n", rr->type);
-        printf("Class: %d\n", rr->clas);
+        printf("Type: %s\n", type_names[rr->type]);
+        printf("Class: %s\n", class_names[rr->clas]);
         printf("TTL: %d\n", rr->ttl);
         printf("RD Len: %d\n", rr->rd_length);
     }
