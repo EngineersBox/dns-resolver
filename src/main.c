@@ -115,7 +115,7 @@ int main(const int argc, const char** argv) {
     struct DNS_HEADER *dns = NULL;
     struct QUESTION *qinfo = NULL;
  
-    int s = socket(AF_INET , SOCK_DGRAM , IPPROTO_UDP); //UDP packet for DNS queries
+    int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //UDP packet for DNS queries
  
     dest.sin_family = AF_INET;
     dest.sin_port = htons(53);
@@ -146,7 +146,7 @@ int main(const int argc, const char** argv) {
     changetoDnsNameFormat(qname , ".www.instaclustr.com");
     qinfo = (struct QUESTION*) &buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; //fill it
  
-    qinfo->qtype = htons(TYPE_AAAA);
+    qinfo->qtype = htons(TYPE_A);
     qinfo->qclass = htons(CLASS_IN);
  
     printf("Sending Packet...\n");

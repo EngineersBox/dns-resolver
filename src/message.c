@@ -362,16 +362,16 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
 }
 
 void messageFree(Message* message) {
-    if (message->question) {
+    for (int i = 0; i < message->header.qd_count; i++) {
         questionFree(message->question);
     }
-    if (message->answer) {
+    for (int i = 0; i < message->header.an_count; i++) {
         resourceRecordFree(message->answer);
     }
-    if (message->authority) {
+    for (int i = 0; i < message->header.ns_count; i++) {
         resourceRecordFree(message->authority);
     }
-    if (message->additional) {
+    for (int i = 0; i < message->header.ar_count; i++) {
         resourceRecordFree(message->additional);
     }
     free(message);
