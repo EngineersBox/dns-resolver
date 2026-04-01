@@ -182,8 +182,8 @@ int main(const int argc, const char** argv) {
     }
     printf("Done\n");
 
-    Message* message = malloc(sizeof(Message));
-    *message = (Message) {0};
+    struct Message* message = malloc(sizeof(struct Message));
+    *message = (struct Message) {0};
     int result = parseMessage((char*) buf, buf_len, message);
     if (result <= 0) {
         fprintf(stderr, "Failed to parse message\n");

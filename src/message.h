@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "resource_record.h"
+
 typedef enum Opcode: uint8_t {
     OPCODE_QUERY = 0,
     OPCODE_IQUERY = 1,
@@ -153,8 +155,9 @@ typedef struct ResourceRecord {
     uint16_t type; // RR type, specifying the meaning ofd data in rdata
     uint16_t clas; // Class of data in rdata
     uint32_t ttl; // Time interval in seconds that this RR can be cached for, 0 indicates no caching
-    uint16_t rd_length; // Length of rdata
-    uint8_t* rdata;
+    union RR data;
+    // uint16_t rd_length; // Length of rdata
+    // uint8_t* rdata;
 } ResourceRecord;
 
 typedef struct Message {

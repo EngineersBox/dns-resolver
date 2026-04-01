@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "domain.h"
+#include "resource_record.h"
+
 const char* opcode_names[] = {
     [OPCODE_QUERY] = "OPCODE_QUERY",
     [OPCODE_IQUERY] = "OPCODE_IQUERY",
@@ -99,9 +102,6 @@ const char* class_names[] = {
     [CLASS_HS] = "HS"
 };
 
-#define bufPtr(buf, type) ((type*)(buf))
-#define bufValue(buf, type) (bufPtr(buf, type)[0])
-
 int parseMessage(char* buf, size_t buf_len, Message* message) {
     char* original_buf = buf;
     Header header = {0};
@@ -109,22 +109,22 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
         return -1;
     }
     char* msg_base = buf;
-    header.id = ntohs(bufValue(buf, uint16_t));
+    header.id = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    header.flags = ntohs(bufValue(buf, uint16_t));
+    header.flags = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    header.qd_count = ntohs(bufValue(buf, uint16_t));
+    header.qd_count = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    header.an_count = ntohs(bufValue(buf, uint16_t));
+    header.an_count = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    header.ns_count = ntohs(bufValue(buf, uint16_t));
+    header.ns_count = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    header.ar_count = ntohs(bufValue(buf, uint16_t));
+    header.ar_count = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
     // printf("[Message] Parsed header\n");
@@ -242,68 +242,6 @@ int parseMessage(char* buf, size_t buf_len, Message* message) {
     return buf - original_buf;
 }
 
-static int parseDomainName(char* buf, size_t buf_len, char* base_addr, uint8_t* name) {
-    memset(name, 0, MAX_DOMAIN_NAME_LENGTH);
-    uint8_t name_offset = 0;
-    uint8_t parsed_bytes = 0;
-    bool encountered_ptr = false;
-    while (name_offset < MAX_DOMAIN_NAME_LENGTH - 1) {
-        if (buf_len < sizeof(uint8_t)) {
-            fprintf(stderr, "[Domain] Unexpected end of buffer\n");
-            return -1;
-        }
-        uint8_t label_len = bufValue(buf, uint8_t);
-        if ((label_len >> 6) == 0b11) {
-            // Pointer
-            uint16_t ptr = ntohs(bufValue(buf, uint16_t));
-            ptr &= ~(0b11 << 14);
-            char* new_buf_ptr = (char*) (bufPtr(base_addr, uint8_t) + ptr);
-            buf_len += (ptrdiff_t) buf - (ptrdiff_t) new_buf_ptr;
-            buf = new_buf_ptr;
-            if (!encountered_ptr) {
-                parsed_bytes += sizeof(uint16_t);
-                encountered_ptr = true;
-            }
-            continue;
-        } else if (label_len == 0) {
-            name[name_offset] = '\0';
-            if (!encountered_ptr) {
-                parsed_bytes += sizeof(uint8_t);
-            }
-            break;
-        } else if (label_len > 63) {
-            fprintf(stderr, "[Domain] Label is longer than maximum: %d > 63\n", label_len);
-            return -1;
-        }
-        buf += sizeof(uint8_t);
-        buf_len -= sizeof(uint8_t);
-        if (!encountered_ptr) {
-            parsed_bytes += sizeof(uint8_t);
-        }
-        if (name_offset + label_len > MAX_DOMAIN_NAME_LENGTH - 1) {
-            fprintf(
-                stderr,
-                "[Domain] Domain name too long: %d > %d\n",
-                name_offset + label_len,
-                MAX_DOMAIN_NAME_LENGTH - 1
-            );
-            return -1;
-        }
-        memcpy(name + name_offset, buf, sizeof(uint8_t) * label_len);
-        buf += sizeof(uint8_t) * label_len;
-        buf_len -= sizeof(uint8_t) * label_len;
-        if (!encountered_ptr) {
-            parsed_bytes += sizeof(uint8_t) * label_len;
-        }
-        name_offset += label_len;
-        name[name_offset++] = (uint8_t) '.';
-    }
-    if (name_offset > 0 && (char) name[name_offset - 1] == '.') {
-        name[name_offset - 1] = '\0';
-    }
-    return parsed_bytes;
-}
-
 int parseQuestion(char* buf, size_t buf_len, char* base_addr, Question* question) {
     if (buf_len < sizeof(uint8_t) + (2 * sizeof(uint16_t))) {
         fprintf(stderr, "[Question] Unexpected end of buffer\n");
@@ -317,10 +255,10 @@ int parseQuestion(char* buf, size_t buf_len, char* base_addr, Question* question
     }
     buf += result;
     buf_len -= result;
-    question->qtype = ntohs(bufValue(buf, uint16_t));
+    question->qtype = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    question->qclass = ntohs(bufValue(buf, uint16_t));
+    question->qclass = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
     return buf - original_buf;
@@ -332,32 +270,45 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
         return -1;
     }
     char* original_buf = buf;
-    int result = parseDomainName(buf, buf_len, base_addr, (uint8_t*) rr->name);
-    if (result <= 0) {
+    int bytes_parsed = parseDomainName(buf, buf_len, base_addr, (uint8_t*) rr->name);
+    if (bytes_parsed <= 0) {
         fprintf(stderr, "[RR] Failed to parse domain name\n");
         return -1;
     }
-    buf += result;
-    buf_len -= result;
-    rr->type = ntohs(bufValue(buf, uint16_t));
+    buf += bytes_parsed;
+    buf_len -= bytes_parsed;
+    rr->type = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    rr->clas = ntohs(bufValue(buf, uint16_t));
+    rr->clas = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    rr->ttl = ntohl(bufValue(buf, uint32_t));
+    rr->ttl = ntohl(((uint32_t*) buf)[0]);
     buf += sizeof(uint32_t);
     buf_len -= sizeof(uint32_t);
-    rr->rd_length = ntohs(bufValue(buf, uint16_t));
+    uint16_t rd_length = ntohs(((uint16_t*) buf)[0]);
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
-    size_t bytes = rr->rd_length * sizeof(uint8_t);
-    if (bytes > 0) {
-        rr->rdata = malloc(bytes);
-        memcpy(rr->rdata, buf, bytes);
-        buf += bytes;
-        buf_len -= bytes;
+    bytes_parsed = 0;
+    switch (rr->type) {
+        case TYPE_CNAME:
+            rr->data.cname = malloc(sizeof(struct RR_CNAME));
+            if (rr->data.cname == NULL) {
+                bytes_parsed = -1;
+                break;
+            }
+            bytes_parsed = parseRRCNAME(buf, buf_len, rd_length, rr->data.cname);
+            break;
+        default:
+            fprintf(stderr, "[RR] Unknown resource record type: %d\n", rr->type);
+            return -1;
     }
+    if (bytes_parsed < 0) {
+        fprintf(stderr, "[RR] Failed to parse %s record\n", type_names[rr->type]);
+        return bytes_parsed;
+    }
+    buf += bytes_parsed;
+    buf_len -= bytes_parsed;
     return buf - original_buf;
 }
 
@@ -382,8 +333,9 @@ void questionFree(Question* question) {
 }
 
 void resourceRecordFree(ResourceRecord* rr) {
-    if (rr->rd_length > 0 && rr->rdata != NULL) {
-        free(rr->rdata);
+    switch (rr->type) {
+        default:
+            free(rr->data.raw_ptr);
     }
     free(rr);
 }
