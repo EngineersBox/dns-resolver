@@ -290,19 +290,36 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
     buf += sizeof(uint16_t);
     buf_len -= sizeof(uint16_t);
     bytes_parsed = 0;
+#define invokeParse(field, type_suffix) \
+    rr->data.field = malloc(sizeof(struct RR_##type_suffix)); \
+    if (rr->data.field == NULL) { \
+        bytes_parsed = -1; \
+        break; \
+    } \
+    bytes_parsed = parseRR##type_suffix(buf, buf_len, rd_length, rr->data.field)
     switch (rr->type) {
-        case TYPE_CNAME:
-            rr->data.cname = malloc(sizeof(struct RR_CNAME));
-            if (rr->data.cname == NULL) {
-                bytes_parsed = -1;
-                break;
-            }
-            bytes_parsed = parseRRCNAME(buf, buf_len, rd_length, rr->data.cname);
-            break;
+        case TYPE_A: invokeParse(a, A); break;
+        case TYPE_NS: invokeParse(ns, NS); break;
+        case TYPE_MD: invokeParse(md, MD); break;
+        case TYPE_MF: invokeParse(mf, MF); break;
+        case TYPE_CNAME: invokeParse(cname, CNAME); break;
+        case TYPE_SOA: invokeParse(soa, SOA); break;
+        case TYPE_MB: invokeParse(mb, MB); break;
+        case TYPE_MG: invokeParse(mg, MG); break;
+        case TYPE_MR: invokeParse(mr, MR); break;
+        case TYPE_NULL: invokeParse(nul, NULL); break;
+        case TYPE_WKS: invokeParse(wks, WKS); break;
+        case TYPE_PTR: invokeParse(ptr, PTR); break;
+        case TYPE_HINFO: invokeParse(hinfo, HINFO); break;
+        case TYPE_MINFO: invokeParse(minfo, MINFO); break;
+        case TYPE_MX: invokeParse(mx, MX); break;
+        case TYPE_TXT: invokeParse(txt, TXT); break;
+        case TYPE_AAAA: invokeParse(aaaa, AAAA); break;
         default:
             fprintf(stderr, "[RR] Unknown resource record type: %d\n", rr->type);
             return -1;
     }
+#undef invokeParse
     if (bytes_parsed < 0) {
         fprintf(stderr, "[RR] Failed to parse %s record\n", type_names[rr->type]);
         return bytes_parsed;

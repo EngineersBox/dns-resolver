@@ -122,7 +122,7 @@ int parseRRAAAA(char* buf, size_t buf_len, uint16_t rd_len, struct RR_AAAA* aaaa
 typedef union RR {
     struct RR_CNAME* cname;
     struct RR_HINFO* hinfo;
-    struct RR_MD* mb;
+    struct RR_MB* mb;
     struct RR_MD* md;
     struct RR_MF* mf;
     struct RR_MG* mg;
