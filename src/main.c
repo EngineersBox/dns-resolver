@@ -81,11 +81,10 @@ int print_rr(const ResourceRecord* rr) {
     printf("Type: %s ", type_names[rr->type]);
     printf("Class: %s ", class_names[rr->clas]);
     printf("TTL: %d ", rr->ttl);
-    printf("RD Len: %d ", rr->rd_length);
     switch (rr->type) {
         case TYPE_A:
-            char ipv4_addr[INET_ADDRSTRLEN] = {0};
-             if (inet_ntop(AF_INET, rr->rdata, ipv4_addr, INET_ADDRSTRLEN) == NULL) {
+            char ipv4_addr[INET_ADDRSTRLEN];
+             if (inet_ntop(AF_INET, &rr->data.a->address, ipv4_addr, INET_ADDRSTRLEN) == NULL) {
                 perror("Failed to convert IPv4 address");
                 return 1;
              }
@@ -93,7 +92,7 @@ int print_rr(const ResourceRecord* rr) {
             break;
         case TYPE_AAAA:
             char ipv6_addr[INET6_ADDRSTRLEN] = {0};
-             if (inet_ntop(AF_INET6, rr->rdata, ipv6_addr, INET6_ADDRSTRLEN) == NULL) {
+             if (inet_ntop(AF_INET6, &rr->data.aaaa->address, ipv6_addr, INET6_ADDRSTRLEN) == NULL) {
                 perror("Failed to convert IPv6 address");
                 return 1;
              }
