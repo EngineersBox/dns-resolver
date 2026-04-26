@@ -170,12 +170,15 @@ typedef struct Message {
 
 // Returns bytes parsed or error if negative
 int parseMessage(char* buf, size_t buf_len, Message* message);
+int writeMessage(char* buf, size_t buf_len, Message* message);
 void messageFree(Message* message);
 // Returns bytes parsed or error if negative
 int parseQuestion(char* buf, size_t buf_len, char* base_addr, Question* question);
+int writeQuestion(char* buf, size_t buf_len, Question* question);
 void questionFree(Question* question);
 // Returns bytes parsed or error if negative
 int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceRecord* rr);
+int writeResourceRecord(char* buf, size_t buf_len, ResourceRecord* rr, size_t rr_count);
 void resourceRecordFree(ResourceRecord* rr);
 
 #endif // _DNS_RESOLVER_MESSAGE_H_

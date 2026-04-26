@@ -296,7 +296,7 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
         bytes_parsed = -1; \
         break; \
     } \
-    bytes_parsed = parseRR##type_suffix(buf, buf_len, rd_length, rr->data.field)
+    bytes_parsed = parseRR##type_suffix(buf, buf_len, base_addr, rd_length, rr->data.field)
     switch (rr->type) {
         case TYPE_A: invokeParse(a, A); break;
         case TYPE_NS: invokeParse(ns, NS); break;
@@ -327,6 +327,39 @@ int parseResourceRecord(char* buf, size_t buf_len, char* base_addr, ResourceReco
     buf += bytes_parsed;
     buf_len -= bytes_parsed;
     return buf - original_buf;
+}
+
+int writeMessage(char* buf, size_t buf_len, Message* message) {
+    if (buf_len < sizeof(uint16_t) * 4) {
+        fprintf(stderr, "[MESSAGE] Not enough buffer space to write message\n");
+        return -1;
+    }
+    char* original_buf = buf;
+    *((uint16_t*) buf) = htons(message->header.id);
+    buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
+    *((uint16_t*) buf) = htons(message->header.flags);
+    buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
+    *((uint16_t*) buf) = htons(message->header.qd_count);
+    buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
+    *((uint16_t*) buf) = htons(message->header.an_count);
+    buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
+    *((uint16_t*) buf) = htons(message->header.ns_count);
+    buf += sizeof(uint16_t);
+    buf_len -= sizeof(uint16_t);
+    *((uint16_t*) buf) = htons(message->header.ar_count);
+    return buf - original_buf;
+}
+
+int writeQuestion(char* buf, size_t buf_len, Question* question) {
+
+}
+
+int writeResourceRecord(char* buf, size_t buf_len, ResourceRecord* rr, size_t rr_count) {
+
 }
 
 void messageFree(Message* message) {
